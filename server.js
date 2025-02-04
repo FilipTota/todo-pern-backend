@@ -3,6 +3,7 @@ import todos from "./routes/todos.js";
 const port = process.env.PORT || 3001;
 
 const app = express();
+app.use(express.json());
 
 // ROUTES
 app.use("/api/todos", todos);
