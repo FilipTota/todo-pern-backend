@@ -5,7 +5,7 @@ import pool from "../database.js";
 export const getTodos = async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT * FROM todo");
-    if (rows.length === 0) {
+    if (!rows) {
       return res.status(404).json({ message: "No todos found" });
     }
     res.json(rows);
