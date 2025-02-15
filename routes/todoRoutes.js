@@ -5,7 +5,7 @@ import {
   createTodo,
   updateTodo,
   deleteTodo,
-} from "../controllers/todosContollers.js";
+} from "../controllers/todoContollers.js";
 const router = express.Router();
 
 // Get all todos
