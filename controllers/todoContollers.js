@@ -1,10 +1,37 @@
 import pool from "../database.js";
+import jwt from "jsonwebtoken";
+
+const getJwtToken = (req, res) => {
+  // Extract the token from auth header
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res
+      .status(400)
+      .json({ message: "Authorization header is required" });
+  }
+
+  return authHeader.split(" ")[1];
+};
+
+const getUserId = (jwtToken) => {
+  // Verify and decode jwt token
+  const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET_KEY);
+  return decoded.userId;
+};
 
 // @desc    Get all todos
 // @route   GET /api/todos
 export const getTodos = async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM todo");
+    const jwtToken = getJwtToken(req, res);
+    if (!jwtToken)
+      return res.status(400).json({ message: "jwtToken is required" });
+
+    const userId = getUserId(jwtToken);
+
+    const { rows } = await pool.query("SELECT * FROM todo WHERE user_id=$1", [
+      userId,
+    ]);
     if (!rows) {
       return res.status(404).json({ message: "No todos found" });
     }
@@ -41,7 +68,12 @@ export const getTodo = async (req, res) => {
 // @route   POST /api/todos
 export const createTodo = async (req, res) => {
   try {
+    const jwtToken = getJwtToken(req, res);
+    if (!jwtToken)
+      return res.status(400).json({ message: "jwtToken is required" });
+
     const { description } = req.body;
+    const userId = getUserId(jwtToken);
 
     // Validate input
     if (!description || description.trim().length === 0) {
@@ -51,8 +83,8 @@ export const createTodo = async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO todo(description) VALUES($1) RETURNING *`,
-      [description]
+      `INSERT INTO todo(description, user_id) VALUES($1, $2) RETURNING *`,
+      [description, userId]
     );
     res.json(rows);
   } catch (error) {
