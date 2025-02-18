@@ -1,6 +1,8 @@
 import pool from "../database.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import passport from "passport";
+import "../middleware/googleAuth.js";
 
 const generateUserToken = async (userId) => {
   const accessToken = await jwt.sign({ userId }, process.env.JWT_SECRET_KEY, {
@@ -75,4 +77,32 @@ export const loginUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Server error.", message: error });
   }
+};
+
+// @desc    auth user with google
+// @route   GET /api/auth/google
+export const googleAuth = (req, res, next) => {
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })(req, res, next); // Ensure you call this as middleware
+};
+
+// @desc    google auth callback
+// @route   GET /api/auth/google/callback
+export const googleAuthCallback = (req, res) => {
+  passport.authenticate("google", { failureRedirect: "/todo" }, (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: "Authentication failed" });
+    }
+
+    // Successful authentication
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.status(500).json({ error: "Login failed" });
+      }
+
+      // Redirect or send user data back to the frontend
+      return res.json(user); // Here you can send the authenticated user or any necessary data back
+    });
+  })(req, res);
 };
