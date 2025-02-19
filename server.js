@@ -9,6 +9,9 @@ import authRoutes from "./routes/authRoutes.js";
 import todoRoutes from "./routes/todoRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
+import { PrismaClient } from "@prisma/client";
+export const prisma = new PrismaClient();
+
 const port = process.env.PORT || 3001;
 
 const app = express();

@@ -1,5 +1,6 @@
 import pool from "../database.js";
 import jwt from "jsonwebtoken";
+import { prisma } from "../server.js";
 
 const getJwtToken = (req, res) => {
   // Extract the token from auth header
@@ -29,13 +30,13 @@ export const getTodos = async (req, res) => {
 
     const userId = getUserId(jwtToken);
 
-    const { rows } = await pool.query("SELECT * FROM todo WHERE user_id=$1", [
-      userId,
-    ]);
-    if (!rows) {
+    const todos = await prisma.todo.findMany({
+      where: { user_id: userId }, // Filter todos by userId
+    });
+    if (!todos || todos.length === 0) {
       return res.status(404).json({ message: "No todos found" });
     }
-    res.json(rows);
+    res.json(todos);
   } catch (error) {
     console.error("Error when getting todos:", error);
     res.status(500).json({
