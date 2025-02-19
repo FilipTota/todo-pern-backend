@@ -90,19 +90,27 @@ export const googleAuth = (req, res, next) => {
 // @desc    google auth callback
 // @route   GET /api/auth/google/callback
 export const googleAuthCallback = (req, res) => {
-  passport.authenticate("google", { failureRedirect: "/todo" }, (err, user) => {
+  passport.authenticate("google", { failureRedirect: "/" }, (err, user) => {
     if (err) {
       return res.status(500).json({ error: "Authentication failed" });
     }
 
     // Successful authentication
-    req.logIn(user, (err) => {
+    req.logIn(user, async (err) => {
       if (err) {
         return res.status(500).json({ error: "Login failed" });
       }
 
-      // Redirect or send user data back to the frontend
-      return res.json(user); // Here you can send the authenticated user or any necessary data back
+      // Create JWT token for the authenticated user
+      const token = await generateUserToken(user.user_id);
+
+      // Set the token in a cookie
+      res.cookie("accessToken", token, {
+        secure: true,
+        sameSite: "Strict",
+      });
+
+      return res.redirect(`${process.env.FRONTEND_API}/todo`);
     });
   })(req, res);
 };
