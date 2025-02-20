@@ -12,6 +12,13 @@ model todo {
   description String? @db.VarChar(255)
   user_id     Int?
   user        user?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_id")
+
+  @@map("todo")
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model user {
@@ -20,5 +27,6 @@ model user {
   email     String  @unique @db.VarChar(255)
   password  String?
   google_id String? @unique @db.VarChar(255)
+  role      Role @default(USER)
   todo      todo[]
 }
