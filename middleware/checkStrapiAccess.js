@@ -27,7 +27,7 @@ export const checkStrapiAccess = async (req, res, next) => {
     }
 
     let strapiAccessToken;
-    if (user.role === "admin") {
+    if (user.role === "ADMIN") {
       strapiAccessToken = fullAccess;
     } else {
       strapiAccessToken = readOnly;
